@@ -1,0 +1,1467 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TIROLER Einbruchdiebstahlversicherung - Das Adventure</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary: #1a1a2e;
+            --secondary: #16213e;
+            --accent: #e94560;
+            --gold: #ffd700;
+            --text: #eee;
+            --success: #4ade80;
+            --error: #ef4444;
+        }
+
+        body {
+            font-family: 'Segoe UI', system-ui, sans-serif;
+            background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%);
+            min-height: 100vh;
+            color: var(--text);
+            overflow-x: hidden;
+        }
+
+        /* Particle Background */
+        #particles {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        .particle {
+            position: absolute;
+            width: 4px;
+            height: 4px;
+            background: var(--gold);
+            border-radius: 50%;
+            opacity: 0.3;
+            animation: float 15s infinite;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(100vh) rotate(0deg); opacity: 0; }
+            10% { opacity: 0.3; }
+            90% { opacity: 0.3; }
+            100% { transform: translateY(-100vh) rotate(720deg); opacity: 0; }
+        }
+
+        /* Header */
+        header {
+            background: rgba(0,0,0,0.3);
+            padding: 1rem 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: fixed;
+            width: 100%;
+            top: 0;
+            z-index: 100;
+            backdrop-filter: blur(10px);
+        }
+
+        .logo {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: var(--gold);
+            text-shadow: 0 0 10px rgba(255, 215, 0, 0.5);
+        }
+
+        .stats {
+            display: flex;
+            gap: 2rem;
+        }
+
+        .stat {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .stat-icon {
+            font-size: 1.5rem;
+        }
+
+        .stat-bar {
+            width: 150px;
+            height: 20px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 10px;
+            overflow: hidden;
+            border: 2px solid var(--gold);
+        }
+
+        .stat-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--accent), var(--gold));
+            transition: width 0.5s ease;
+        }
+
+        .stat-text {
+            font-size: 0.9rem;
+            min-width: 60px;
+        }
+
+        /* Main Container */
+        main {
+            padding-top: 80px;
+            min-height: 100vh;
+            position: relative;
+            z-index: 1;
+        }
+
+        /* Screen Sections */
+        .screen {
+            display: none;
+            padding: 2rem;
+            max-width: 900px;
+            margin: 0 auto;
+            animation: fadeIn 0.5s ease;
+        }
+
+        .screen.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Start Screen */
+        #start-screen {
+            text-align: center;
+            padding-top: 15vh;
+        }
+
+        .game-title {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+            text-shadow: 0 0 20px var(--accent);
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { text-shadow: 0 0 20px var(--accent); }
+            50% { text-shadow: 0 0 40px var(--accent), 0 0 60px var(--gold); }
+        }
+
+        .game-subtitle {
+            font-size: 1.3rem;
+            margin-bottom: 3rem;
+            color: #aaa;
+        }
+
+        .start-btn {
+            background: linear-gradient(135deg, var(--accent), #ff6b6b);
+            border: none;
+            padding: 1.2rem 3rem;
+            font-size: 1.5rem;
+            color: white;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 10px 30px rgba(233, 69, 96, 0.4);
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+
+        .start-btn:hover {
+            transform: translateY(-5px) scale(1.05);
+            box-shadow: 0 15px 40px rgba(233, 69, 96, 0.6);
+        }
+
+        /* Level Map */
+        #map-screen .level-map {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1.5rem;
+            margin-top: 2rem;
+        }
+
+        .level-card {
+            background: rgba(255,255,255,0.05);
+            border: 2px solid rgba(255,255,255,0.1);
+            border-radius: 15px;
+            padding: 1.5rem;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .level-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.1), transparent);
+            transition: left 0.5s ease;
+        }
+
+        .level-card:hover::before {
+            left: 100%;
+        }
+
+        .level-card:hover {
+            transform: translateY(-10px);
+            border-color: var(--gold);
+            box-shadow: 0 20px 40px rgba(0,0,0,0.3);
+        }
+
+        .level-card.locked {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .level-card.completed {
+            border-color: var(--success);
+        }
+
+        .level-card.completed::after {
+            content: '\2713';
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: var(--success);
+            color: white;
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+        }
+
+        .level-number {
+            font-size: 3rem;
+            font-weight: bold;
+            color: var(--gold);
+            margin-bottom: 0.5rem;
+        }
+
+        .level-title {
+            font-size: 1.1rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .level-desc {
+            font-size: 0.9rem;
+            color: #888;
+        }
+
+        /* Content Screen */
+        .content-box {
+            background: rgba(255,255,255,0.05);
+            border-radius: 20px;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+
+        .content-title {
+            font-size: 2rem;
+            margin-bottom: 1rem;
+            color: var(--gold);
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .content-text {
+            line-height: 1.8;
+            font-size: 1.1rem;
+        }
+
+        .content-text p {
+            margin-bottom: 1rem;
+        }
+
+        .content-text ul {
+            margin: 1rem 0 1rem 2rem;
+        }
+
+        .content-text li {
+            margin-bottom: 0.5rem;
+        }
+
+        .highlight-box {
+            background: linear-gradient(135deg, rgba(233, 69, 96, 0.2), rgba(255, 215, 0, 0.1));
+            border-left: 4px solid var(--gold);
+            padding: 1rem 1.5rem;
+            margin: 1.5rem 0;
+            border-radius: 0 10px 10px 0;
+        }
+
+        .highlight-box strong {
+            color: var(--gold);
+        }
+
+        /* Quiz Section */
+        .quiz-container {
+            background: rgba(0,0,0,0.3);
+            border-radius: 20px;
+            padding: 2rem;
+            margin-top: 2rem;
+        }
+
+        .quiz-title {
+            font-size: 1.5rem;
+            margin-bottom: 1.5rem;
+            color: var(--accent);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .quiz-question {
+            font-size: 1.2rem;
+            margin-bottom: 1.5rem;
+            padding: 1rem;
+            background: rgba(255,255,255,0.05);
+            border-radius: 10px;
+        }
+
+        .quiz-options {
+            display: flex;
+            flex-direction: column;
+            gap: 0.8rem;
+        }
+
+        .quiz-option {
+            background: rgba(255,255,255,0.05);
+            border: 2px solid rgba(255,255,255,0.1);
+            padding: 1rem 1.5rem;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .quiz-option:hover:not(.disabled) {
+            background: rgba(255,255,255,0.1);
+            border-color: var(--gold);
+            transform: translateX(10px);
+        }
+
+        .quiz-option.correct {
+            background: rgba(74, 222, 128, 0.2);
+            border-color: var(--success);
+        }
+
+        .quiz-option.wrong {
+            background: rgba(239, 68, 68, 0.2);
+            border-color: var(--error);
+        }
+
+        .quiz-option.disabled {
+            cursor: not-allowed;
+            opacity: 0.7;
+        }
+
+        .option-letter {
+            background: var(--accent);
+            color: white;
+            width: 35px;
+            height: 35px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            flex-shrink: 0;
+        }
+
+        /* Navigation Buttons */
+        .nav-buttons {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 2rem;
+            gap: 1rem;
+            flex-wrap: wrap;
+        }
+
+        .nav-btn {
+            background: linear-gradient(135deg, var(--secondary), var(--primary));
+            border: 2px solid var(--gold);
+            color: var(--gold);
+            padding: 1rem 2rem;
+            border-radius: 30px;
+            cursor: pointer;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .nav-btn:hover {
+            background: var(--gold);
+            color: var(--primary);
+            transform: scale(1.05);
+        }
+
+        .nav-btn.primary {
+            background: linear-gradient(135deg, var(--accent), #ff6b6b);
+            border-color: var(--accent);
+            color: white;
+        }
+
+        .nav-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        /* Progress indicator */
+        .progress-container {
+            margin-bottom: 2rem;
+        }
+
+        .progress-label {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 0.5rem;
+            font-size: 0.9rem;
+        }
+
+        .progress-bar {
+            height: 10px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 5px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--accent), var(--gold));
+            transition: width 0.5s ease;
+        }
+
+        /* Completion Screen */
+        #completion-screen {
+            text-align: center;
+            padding-top: 10vh;
+        }
+
+        .trophy {
+            font-size: 8rem;
+            margin-bottom: 2rem;
+            animation: bounce 1s infinite;
+        }
+
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-20px); }
+        }
+
+        .completion-title {
+            font-size: 2.5rem;
+            margin-bottom: 1rem;
+            color: var(--gold);
+        }
+
+        .final-score {
+            font-size: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .badge-container {
+            display: flex;
+            justify-content: center;
+            gap: 2rem;
+            margin: 2rem 0;
+            flex-wrap: wrap;
+        }
+
+        .badge {
+            background: rgba(255,255,255,0.05);
+            border: 2px solid var(--gold);
+            border-radius: 15px;
+            padding: 1.5rem;
+            min-width: 150px;
+        }
+
+        .badge-icon {
+            font-size: 3rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .badge-name {
+            font-size: 0.9rem;
+            color: var(--gold);
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .game-title {
+                font-size: 2rem;
+            }
+
+            .stats {
+                display: none;
+            }
+
+            header {
+                justify-content: center;
+            }
+
+            .nav-buttons {
+                flex-direction: column;
+            }
+
+            .nav-btn {
+                width: 100%;
+                justify-content: center;
+            }
+        }
+
+        /* Scroll indicator */
+        .scroll-hint {
+            text-align: center;
+            margin-top: 2rem;
+            animation: fadeInOut 2s infinite;
+        }
+
+        @keyframes fadeInOut {
+            0%, 100% { opacity: 0.3; }
+            50% { opacity: 1; }
+        }
+
+        /* Character animation */
+        .character {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            font-size: 4rem;
+            z-index: 50;
+            cursor: pointer;
+            transition: transform 0.3s ease;
+        }
+
+        .character:hover {
+            transform: scale(1.2) rotate(10deg);
+        }
+
+        .speech-bubble {
+            position: fixed;
+            bottom: 100px;
+            right: 20px;
+            background: white;
+            color: var(--primary);
+            padding: 1rem;
+            border-radius: 15px;
+            max-width: 250px;
+            font-size: 0.9rem;
+            z-index: 50;
+            display: none;
+            animation: fadeIn 0.3s ease;
+        }
+
+        .speech-bubble::after {
+            content: '';
+            position: absolute;
+            bottom: -10px;
+            right: 30px;
+            border: 10px solid transparent;
+            border-top-color: white;
+        }
+
+        .speech-bubble.show {
+            display: block;
+        }
+    </style>
+</head>
+<body>
+    <!-- Particles -->
+    <div id="particles"></div>
+
+    <!-- Header -->
+    <header>
+        <div class="logo">TIROLER Insurance Quest</div>
+        <div class="stats">
+            <div class="stat">
+                <span class="stat-icon">&#9733;</span>
+                <div class="stat-bar">
+                    <div class="stat-fill" id="xp-bar" style="width: 0%"></div>
+                </div>
+                <span class="stat-text" id="xp-text">0 XP</span>
+            </div>
+            <div class="stat">
+                <span class="stat-icon">&#128170;</span>
+                <span class="stat-text" id="level-text">Level 1</span>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main>
+        <!-- Start Screen -->
+        <div id="start-screen" class="screen active">
+            <h1 class="game-title">&#128737; Einbruchdiebstahlversicherung</h1>
+            <p class="game-subtitle">Das interaktive Training-Adventure für TIROLER Mitarbeiter</p>
+            <div style="margin: 2rem 0; color: #888; max-width: 600px; margin-left: auto; margin-right: auto;">
+                <p>Begib dich auf eine Reise durch die Welt der Einbruchdiebstahlversicherung.
+                Lerne die wichtigsten Fakten, meistere Herausforderungen und werde zum Experten!</p>
+            </div>
+            <button class="start-btn" onclick="startGame()">&#9654; Abenteuer starten</button>
+        </div>
+
+        <!-- Level Map -->
+        <div id="map-screen" class="screen">
+            <h2 style="text-align: center; margin-bottom: 1rem;">&#128506; Wähle dein Kapitel</h2>
+            <p style="text-align: center; color: #888; margin-bottom: 2rem;">Schließe alle Level ab, um das Training zu meistern</p>
+            <div class="level-map">
+                <div class="level-card" data-level="1" onclick="selectLevel(1)">
+                    <div class="level-number">I</div>
+                    <div class="level-title">Grundlagen</div>
+                    <div class="level-desc">Was ist die Einbruchdiebstahlversicherung?</div>
+                </div>
+                <div class="level-card locked" data-level="2" onclick="selectLevel(2)">
+                    <div class="level-number">II</div>
+                    <div class="level-title">Ausschlüsse</div>
+                    <div class="level-desc">Deckungsbeschränkungen verstehen</div>
+                </div>
+                <div class="level-card locked" data-level="3" onclick="selectLevel(3)">
+                    <div class="level-number">III</div>
+                    <div class="level-title">Pflichten</div>
+                    <div class="level-desc">Obliegenheiten des Versicherungsnehmers</div>
+                </div>
+                <div class="level-card locked" data-level="4" onclick="selectLevel(4)">
+                    <div class="level-number">IV</div>
+                    <div class="level-title">Vertrag</div>
+                    <div class="level-desc">Rahmenbedingungen und Kündigung</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Level 1: Grundlagen -->
+        <div id="level-1" class="screen">
+            <div class="progress-container">
+                <div class="progress-label">
+                    <span>Level 1: Grundlagen</span>
+                    <span id="progress-1">0%</span>
+                </div>
+                <div class="progress-bar">
+                    <div class="progress-fill" id="progress-fill-1" style="width: 0%"></div>
+                </div>
+            </div>
+
+            <div class="content-box">
+                <h2 class="content-title">&#128737; Was ist die Einbruchdiebstahlversicherung?</h2>
+                <div class="content-text">
+                    <p>Die Einbruchdiebstahlversicherung der TIROLER schützt Kunden vor den <strong>finanziellen Folgen von Einbruchdiebstahl</strong> in ihre Versicherungsräumlichkeiten.</p>
+
+                    <div class="highlight-box">
+                        <strong>Wichtig:</strong> Diese Versicherung deckt sowohl <strong>vollbrachte</strong> als auch <strong>versuchte</strong> Einbruchdiebstähle ab!
+                    </div>
+
+                    <p>Was wird gedeckt:</p>
+                    <ul>
+                        <li>&#10004; Sachschäden durch vollbrachten oder versuchten Einbruchdiebstahl</li>
+                        <li>&#10004; Schäden durch Vandalismus im Rahmen eines Einbruchs</li>
+                    </ul>
+
+                    <p>Was wird <strong>nicht</strong> gedeckt:</p>
+                    <ul>
+                        <li>&#10006; Einfacher Diebstahl ohne Einbruch</li>
+                        <li>&#10006; Schäden durch Naturkatastrophen</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="content-box">
+                <h2 class="content-title">&#128176; Was leistet die TIROLER?</h2>
+                <div class="content-text">
+                    <p>Die TIROLER ersetzt die Kosten für die <strong>Wiederherstellung oder Wiederbeschaffung</strong> der versicherten Sachen im Rahmen der vereinbarten Versicherungssumme.</p>
+
+                    <div class="highlight-box">
+                        <strong>Kundennutzen:</strong> Nach einem Einbruchdiebstahl bleiben Kunden nicht auf den entstandenen Schäden sitzen - sie erhalten eine angemessene Entschädigung!
+                    </div>
+                </div>
+            </div>
+
+            <div class="content-box">
+                <h2 class="content-title">&#128172; Praktische Kundenberatung</h2>
+                <div class="content-text">
+                    <p>Bei der Beratung sollten Sie Kunden klar erklären, dass der Versicherungsschutz nur bei <strong>Einbruchdiebstahl</strong> greift - also wenn Täter <strong>gewaltsam</strong> in die Versicherungsräumlichkeiten eindringen.</p>
+
+                    <p>Betonen Sie, dass <strong>beide Schadensarten</strong> abgedeckt sind:</p>
+                    <ul>
+                        <li>Der materielle Schaden an den gestohlenen Gegenständen</li>
+                        <li>Eventuelle Schäden an der Einrichtung durch den Einbruch</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="quiz-container">
+                <h3 class="quiz-title">&#127919; Quiz-Challenge</h3>
+                <div id="quiz-1-1" class="quiz-question" data-quiz="1-1">
+                    <p><strong>Frage 1:</strong> Ein Fenster wurde von außen eingeschlagen und Gegenstände wurden gestohlen. Ist das ein versicherter Schaden?</p>
+                    <div class="quiz-options">
+                        <div class="quiz-option" data-correct="false" onclick="checkAnswer(this)">
+                            <span class="option-letter">A</span>
+                            <span>Nein, es muss ein gewaltsamer Aufbruch stattfinden</span>
+                        </div>
+                        <div class="quiz-option" data-correct="true" onclick="checkAnswer(this)">
+                            <span class="option-letter">B</span>
+                            <span>Ja, wenn Gegenstände gestohlen wurden</span>
+                        </div>
+                        <div class="quiz-option" data-correct="false" onclick="checkAnswer(this)">
+                            <span class="option-letter">C</span>
+                            <span>Nur wenn das Fenster normalerweise verschlossen ist</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="quiz-1-2" class="quiz-question" data-quiz="1-2" style="display: none;">
+                    <p><strong>Frage 2:</strong> Was ist durch die Einbruchdiebstahlversicherung gedeckt?</p>
+                    <div class="quiz-options">
+                        <div class="quiz-option" data-correct="true" onclick="checkAnswer(this)">
+                            <span class="option-letter">A</span>
+                            <span>Sachschäden durch vollbrachten oder versuchten Einbruchdiebstahl</span>
+                        </div>
+                        <div class="quiz-option" data-correct="false" onclick="checkAnswer(this)">
+                            <span class="option-letter">B</span>
+                            <span>Schäden durch Vandalismus ohne Einbruch</span>
+                        </div>
+                        <div class="quiz-option" data-correct="false" onclick="checkAnswer(this)">
+                            <span class="option-letter">C</span>
+                            <span>Einfacher Diebstahl ohne Einbruch</span>
+                        </div>
+                        <div class="quiz-option" data-correct="false" onclick="checkAnswer(this)">
+                            <span class="option-letter">D</span>
+                            <span>Schäden durch Naturkatastrophen</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="nav-buttons">
+                <button class="nav-btn" onclick="showMap()">&#128506; Zur Karte</button>
+                <button class="nav-btn primary" id="next-1" onclick="completeLevel(1)" disabled>Level abschließen &#9654;</button>
+            </div>
+        </div>
+
+        <!-- Level 2: Ausschlüsse -->
+        <div id="level-2" class="screen">
+            <div class="progress-container">
+                <div class="progress-label">
+                    <span>Level 2: Ausschlüsse</span>
+                    <span id="progress-2">0%</span>
+                </div>
+                <div class="progress-bar">
+                    <div class="progress-fill" id="progress-fill-2" style="width: 0%"></div>
+                </div>
+            </div>
+
+            <div class="content-box">
+                <h2 class="content-title">&#9888; Wichtige Ausschlüsse verstehen</h2>
+                <div class="content-text">
+                    <p>Die Einbruchdiebstahlversicherung deckt <strong>NICHT</strong> folgende Schadensfälle ab:</p>
+                    <ul>
+                        <li>&#10006; <strong>Vandalismus</strong> - mutwillige Zerstörung ohne Diebstahlabsicht</li>
+                        <li>&#10006; <strong>Diebstahl ohne Einbruch</strong> - einfacher Diebstahl</li>
+                        <li>&#10006; <strong>Raub</strong> - Diebstahl unter Gewaltanwendung oder Drohung</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="content-box">
+                <h2 class="content-title">&#127754; Besondere Risiken</h2>
+                <div class="content-text">
+                    <p>Folgende Risiken sind <strong>grundsätzlich ausgeschlossen</strong>:</p>
+                    <ul>
+                        <li>Krieg und innere Unruhen</li>
+                        <li>Terror</li>
+                        <li>Außergewöhnliche Naturereignisse (z.B. Erdbeben)</li>
+                        <li>Kernenergie</li>
+                    </ul>
+
+                    <div class="highlight-box">
+                        <strong>Merke:</strong> Auch vorsätzlich oder grob fahrlässig herbeigeführte Schäden werden nicht ersetzt!
+                    </div>
+                </div>
+            </div>
+
+            <div class="content-box">
+                <h2 class="content-title">&#128200; Deckungsbeschränkungen</h2>
+                <div class="content-text">
+                    <p><strong>Versicherungssumme:</strong> Bei einer zu niedrigen Versicherungssumme kann es zu einer <strong>Unterversicherung</strong> kommen - dann wird nur ein Teil des Schadens ersetzt.</p>
+
+                    <p><strong>Wertgegenstände und Geld:</strong> Je nach Verwahrungsart gelten unterschiedliche Limits. Ein Safe bietet höhere Deckungssummen als offene Aufbewahrung.</p>
+
+                    <p><strong>Selbstbehalt:</strong> Wurde ein Selbstbehalt vereinbart, wird dieser vom Entschädigungsbetrag abgezogen.</p>
+                </div>
+            </div>
+
+            <div class="content-box">
+                <h2 class="content-title">&#128161; Kundenberatung zu Ausschlüssen</h2>
+                <div class="content-text">
+                    <p>Erklären Sie Kunden anhand <strong>konkreter Beispiele</strong> den Unterschied zwischen Einbruchdiebstahl und anderen Schadensfällen:</p>
+
+                    <div class="highlight-box">
+                        <strong>Beispiel:</strong> "Wenn jemand Ihr offenes Gartentor nutzt und Gegenstände aus dem Haus mitnimmt, ist das kein Einbruch. Bricht jedoch jemand die Terrassentür auf, greift der Versicherungsschutz."
+                    </div>
+                </div>
+            </div>
+
+            <div class="quiz-container">
+                <h3 class="quiz-title">&#127919; Quiz-Challenge</h3>
+                <div id="quiz-2-1" class="quiz-question" data-quiz="2-1">
+                    <p><strong>Frage 1:</strong> Sind Terrorschäden durch die Einbruchdiebstahlversicherung gedeckt?</p>
+                    <div class="quiz-options">
+                        <div class="quiz-option" data-correct="true" onclick="checkAnswer(this)">
+                            <span class="option-letter">A</span>
+                            <span>Nein, Terrorschäden sind grundsätzlich ausgeschlossen</span>
+                        </div>
+                        <div class="quiz-option" data-correct="false" onclick="checkAnswer(this)">
+                            <span class="option-letter">B</span>
+                            <span>Ja, wenn sie zu einem Einbruch führen</span>
+                        </div>
+                        <div class="quiz-option" data-correct="false" onclick="checkAnswer(this)">
+                            <span class="option-letter">C</span>
+                            <span>Nur bei zusätzlicher Terrorversicherung</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="quiz-2-2" class="quiz-question" data-quiz="2-2" style="display: none;">
+                    <p><strong>Frage 2:</strong> Eine unbekannte Person betritt das Haus durch eine offen stehende Haustür und stiehlt wertvolle Gegenstände. Ist das versichert?</p>
+                    <div class="quiz-options">
+                        <div class="quiz-option" data-correct="true" onclick="checkAnswer(this)">
+                            <span class="option-letter">A</span>
+                            <span>Nein, es fehlt die gewaltsame Überwindung von Verschlüssen</span>
+                        </div>
+                        <div class="quiz-option" data-correct="false" onclick="checkAnswer(this)">
+                            <span class="option-letter">B</span>
+                            <span>Ja, wenn Gegenstände gestohlen wurden</span>
+                        </div>
+                        <div class="quiz-option" data-correct="false" onclick="checkAnswer(this)">
+                            <span class="option-letter">C</span>
+                            <span>Nur bei Schäden über 1000 Euro</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="quiz-2-3" class="quiz-question" data-quiz="2-3" style="display: none;">
+                    <p><strong>Frage 3:</strong> Ein Einbrecher bricht die Kellertür auf und stiehlt Werkzeug. Ist das versichert?</p>
+                    <div class="quiz-options">
+                        <div class="quiz-option" data-correct="true" onclick="checkAnswer(this)">
+                            <span class="option-letter">A</span>
+                            <span>Ja, das ist ein klassischer Fall von Einbruchdiebstahl</span>
+                        </div>
+                        <div class="quiz-option" data-correct="false" onclick="checkAnswer(this)">
+                            <span class="option-letter">B</span>
+                            <span>Nein, das ist nur einfacher Diebstahl</span>
+                        </div>
+                        <div class="quiz-option" data-correct="false" onclick="checkAnswer(this)">
+                            <span class="option-letter">C</span>
+                            <span>Nur wenn der Täter Gewalt angewendet hat</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="nav-buttons">
+                <button class="nav-btn" onclick="showMap()">&#128506; Zur Karte</button>
+                <button class="nav-btn primary" id="next-2" onclick="completeLevel(2)" disabled>Level abschließen &#9654;</button>
+            </div>
+        </div>
+
+        <!-- Level 3: Obliegenheiten -->
+        <div id="level-3" class="screen">
+            <div class="progress-container">
+                <div class="progress-label">
+                    <span>Level 3: Pflichten</span>
+                    <span id="progress-3">0%</span>
+                </div>
+                <div class="progress-bar">
+                    <div class="progress-fill" id="progress-fill-3" style="width: 0%"></div>
+                </div>
+            </div>
+
+            <div class="content-box">
+                <h2 class="content-title">&#128221; Informationspflichten</h2>
+                <div class="content-text">
+                    <p>Kunden müssen die TIROLER <strong>vollständig und ehrlich</strong> über das versicherte Risiko informieren:</p>
+                    <ul>
+                        <li>Vor Vertragsabschluss</li>
+                        <li>Während der gesamten Vertragslaufzeit</li>
+                    </ul>
+
+                    <div class="highlight-box">
+                        <strong>Wichtig:</strong> Änderungen der Risikosituation (z.B. längere Abwesenheit, Umbaumaßnahmen) müssen <strong>unverzüglich</strong> gemeldet werden!
+                    </div>
+                </div>
+            </div>
+
+            <div class="content-box">
+                <h2 class="content-title">&#128680; Schadenverhütung und -meldung</h2>
+                <div class="content-text">
+                    <p><strong>Schadenminderung:</strong> Kunden sind verpflichtet, jeden Schaden so gering wie möglich zu halten.</p>
+
+                    <p><strong>Schnelle Meldung:</strong></p>
+                    <ul>
+                        <li>Schäden müssen der TIROLER <strong>so schnell wie möglich</strong> gemeldet werden</li>
+                        <li>Parallel ist auch die <strong>Sicherheitsbehörde (Polizei)</strong> zu informieren</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="content-box">
+                <h2 class="content-title">&#128274; Sicherheitsvorschriften</h2>
+                <div class="content-text">
+                    <p>Wenn <strong>niemand zuhause</strong> ist:</p>
+                    <ul>
+                        <li>Eingangs- und Terrassentüren ordnungsgemäß schließen</li>
+                        <li>Fenster ordnungsgemäß schließen</li>
+                        <li>Alle vorhandenen Schlösser versperren</li>
+                        <li>Vereinbarte Sicherheitsvorschriften einhalten</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="content-box">
+                <h2 class="content-title">&#129309; Mitwirkungspflichten im Schadenfall</h2>
+                <div class="content-text">
+                    <p>Kunden müssen bei der Feststellung des Schadenfalles <strong>aktiv mitwirken</strong>:</p>
+                    <ul>
+                        <li>Erteilung von Auskünften</li>
+                        <li>Überlassung von Originalbelegen (Kaufquittungen, Rechnungen etc.)</li>
+                    </ul>
+
+                    <div class="highlight-box">
+                        <strong>Beratungstipp:</strong> Bei Verletzung von Obliegenheiten kann die TIROLER Leistungen kürzen oder sogar ganz verweigern!
+                    </div>
+                </div>
+            </div>
+
+            <div class="quiz-container">
+                <h3 class="quiz-title">&#127919; Quiz-Challenge</h3>
+                <div id="quiz-3-1" class="quiz-question" data-quiz="3-1">
+                    <p><strong>Frage 1:</strong> Ein Kunde installiert eine neue Alarmanlage. Was muss er tun?</p>
+                    <div class="quiz-options">
+                        <div class="quiz-option" data-correct="true" onclick="checkAnswer(this)">
+                            <span class="option-letter">A</span>
+                            <span>Die Änderung muss unverzüglich der TIROLER gemeldet werden</span>
+                        </div>
+                        <div class="quiz-option" data-correct="false" onclick="checkAnswer(this)">
+                            <span class="option-letter">B</span>
+                            <span>Eine Meldung ist nur bei Schadenfall erforderlich</span>
+                        </div>
+                        <div class="quiz-option" data-correct="false" onclick="checkAnswer(this)">
+                            <span class="option-letter">C</span>
+                            <span>Änderungen können bis zum Vertragsende aufgeschoben werden</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="quiz-3-2" class="quiz-question" data-quiz="3-2" style="display: none;">
+                    <p><strong>Frage 2:</strong> Einem Kunden wurden alle Kaufbelege der gestohlenen Gegenstände gestohlen. Was sollte er tun?</p>
+                    <div class="quiz-options">
+                        <div class="quiz-option" data-correct="true" onclick="checkAnswer(this)">
+                            <span class="option-letter">A</span>
+                            <span>Versuchen Kopien oder andere Nachweise zu beschaffen, aktiv mit der TIROLER zusammenarbeiten</span>
+                        </div>
+                        <div class="quiz-option" data-correct="false" onclick="checkAnswer(this)">
+                            <span class="option-letter">B</span>
+                            <span>Ohne Originalbelege kann keine Entschädigung gezahlt werden</span>
+                        </div>
+                        <div class="quiz-option" data-correct="false" onclick="checkAnswer(this)">
+                            <span class="option-letter">C</span>
+                            <span>Schätzen Sie einfach die Werte, das reicht aus</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="quiz-3-3" class="quiz-question" data-quiz="3-3" style="display: none;">
+                    <p><strong>Frage 3:</strong> Was muss ein Kunde sofort nach einem Einbruch tun?</p>
+                    <div class="quiz-options">
+                        <div class="quiz-option" data-correct="true" onclick="checkAnswer(this)">
+                            <span class="option-letter">A</span>
+                            <span>Schaden sofort an TIROLER und Polizei melden, alle Belege sammeln</span>
+                        </div>
+                        <div class="quiz-option" data-correct="false" onclick="checkAnswer(this)">
+                            <span class="option-letter">B</span>
+                            <span>Nur die gestohlenen Gegenstände sind relevant</span>
+                        </div>
+                        <div class="quiz-option" data-correct="false" onclick="checkAnswer(this)">
+                            <span class="option-letter">C</span>
+                            <span>Schadensmeldung kann bis zu 6 Monate warten</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="nav-buttons">
+                <button class="nav-btn" onclick="showMap()">&#128506; Zur Karte</button>
+                <button class="nav-btn primary" id="next-3" onclick="completeLevel(3)" disabled>Level abschließen &#9654;</button>
+            </div>
+        </div>
+
+        <!-- Level 4: Vertrag -->
+        <div id="level-4" class="screen">
+            <div class="progress-container">
+                <div class="progress-label">
+                    <span>Level 4: Vertrag</span>
+                    <span id="progress-4">0%</span>
+                </div>
+                <div class="progress-bar">
+                    <div class="progress-fill" id="progress-fill-4" style="width: 0%"></div>
+                </div>
+            </div>
+
+            <div class="content-box">
+                <h2 class="content-title">&#128176; Prämienzahlung</h2>
+                <div class="content-text">
+                    <p>Kunden zahlen ihre Prämie <strong>fristgerecht im Voraus</strong>:</p>
+                    <ul>
+                        <li>Jährlich</li>
+                        <li>Halbjährlich</li>
+                        <li>Vierteljährlich</li>
+                        <li>Monatlich</li>
+                    </ul>
+
+                    <p><strong>Zahlungsarten:</strong> SEPA-Lastschrift, Onlinebanking oder Zahlschein</p>
+                </div>
+            </div>
+
+            <div class="content-box">
+                <h2 class="content-title">&#128197; Versicherungsbeginn</h2>
+                <div class="content-text">
+                    <p>Der Versicherungsschutz beginnt mit dem <strong>in der Versicherungspolizze angegebenen Datum</strong>.</p>
+
+                    <div class="highlight-box">
+                        <strong>Wichtig:</strong> Voraussetzung ist die <strong>rechtzeitige Zahlung</strong> der ersten Versicherungsprämie!
+                    </div>
+                </div>
+            </div>
+
+            <div class="content-box">
+                <h2 class="content-title">&#128260; Vertragsende und -verlängerung</h2>
+                <div class="content-text">
+                    <p><strong>Kurze Vertragslaufzeit (unter 1 Jahr):</strong> Endet automatisch zum vereinbarten Zeitpunkt ohne Kündigung.</p>
+
+                    <p><strong>Längere Vertragslaufzeit (1 Jahr oder mehr):</strong> Verlängert sich <strong>automatisch</strong> um jeweils ein weiteres Jahr, sofern keine fristgerechte Kündigung erfolgt.</p>
+                </div>
+            </div>
+
+            <div class="content-box">
+                <h2 class="content-title">&#128220; Kündigungsmöglichkeiten</h2>
+                <div class="content-text">
+                    <p><strong>Für Verbraucher:</strong></p>
+                    <ul>
+                        <li>Kündigung zum Ende des <strong>dritten Versicherungsjahres</strong></li>
+                        <li>Ab dann: jährliche Kündigung mit <strong>1 Monat</strong> Kündigungsfrist</li>
+                    </ul>
+
+                    <p><strong>Für Unternehmer:</strong></p>
+                    <ul>
+                        <li>Kündigung zum Ende der vereinbarten Vertragslaufzeit</li>
+                        <li>Kündigungsfrist: <strong>3 Monate</strong></li>
+                    </ul>
+
+                    <div class="highlight-box">
+                        <strong>Außerordentliche Kündigung:</strong> Der Vertrag kann aus weiteren Gründen vorzeitig gekündigt werden, z.B. im Schadenfall.
+                    </div>
+                </div>
+            </div>
+
+            <div class="quiz-container">
+                <h3 class="quiz-title">&#127919; Quiz-Challenge</h3>
+                <div id="quiz-4-1" class="quiz-question" data-quiz="4-1">
+                    <p><strong>Frage 1:</strong> Verlängert sich ein 2-Jahres-Vertrag automatisch?</p>
+                    <div class="quiz-options">
+                        <div class="quiz-option" data-correct="true" onclick="checkAnswer(this)">
+                            <span class="option-letter">A</span>
+                            <span>Ja, automatisch um ein weiteres Jahr</span>
+                        </div>
+                        <div class="quiz-option" data-correct="false" onclick="checkAnswer(this)">
+                            <span class="option-letter">B</span>
+                            <span>Nein, muss jedes Jahr neu abgeschlossen werden</span>
+                        </div>
+                        <div class="quiz-option" data-correct="false" onclick="checkAnswer(this)">
+                            <span class="option-letter">C</span>
+                            <span>Nur bei Verbrauchern, nicht bei Unternehmern</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="quiz-4-2" class="quiz-question" data-quiz="4-2" style="display: none;">
+                    <p><strong>Frage 2:</strong> Welche Kündigungsfrist gilt für Unternehmer?</p>
+                    <div class="quiz-options">
+                        <div class="quiz-option" data-correct="true" onclick="checkAnswer(this)">
+                            <span class="option-letter">A</span>
+                            <span>Drei Monate zum Ende der vereinbarten Vertragslaufzeit</span>
+                        </div>
+                        <div class="quiz-option" data-correct="false" onclick="checkAnswer(this)">
+                            <span class="option-letter">B</span>
+                            <span>Ein Monat zum Ende des dritten Versicherungsjahres</span>
+                        </div>
+                        <div class="quiz-option" data-correct="false" onclick="checkAnswer(this)">
+                            <span class="option-letter">C</span>
+                            <span>Sechs Monate zum Vertragsende</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="quiz-4-3" class="quiz-question" data-quiz="4-3" style="display: none;">
+                    <p><strong>Frage 3:</strong> Ist die rechtzeitige Prämienzahlung Voraussetzung für den Versicherungsschutz?</p>
+                    <div class="quiz-options">
+                        <div class="quiz-option" data-correct="true" onclick="checkAnswer(this)">
+                            <span class="option-letter">A</span>
+                            <span>Ja, rechtzeitige Zahlung ist Voraussetzung für Versicherungsschutz</span>
+                        </div>
+                        <div class="quiz-option" data-correct="false" onclick="checkAnswer(this)">
+                            <span class="option-letter">B</span>
+                            <span>Nein, Zahlung kann nach Versicherungsbeginn erfolgen</span>
+                        </div>
+                        <div class="quiz-option" data-correct="false" onclick="checkAnswer(this)">
+                            <span class="option-letter">C</span>
+                            <span>Nur bei Verbrauchern erforderlich</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="quiz-4-4" class="quiz-question" data-quiz="4-4" style="display: none;">
+                    <p><strong>Frage 4:</strong> Wo gilt der Versicherungsschutz?</p>
+                    <div class="quiz-options">
+                        <div class="quiz-option" data-correct="true" onclick="checkAnswer(this)">
+                            <span class="option-letter">A</span>
+                            <span>Am vereinbarten Versicherungsort laut Polizze</span>
+                        </div>
+                        <div class="quiz-option" data-correct="false" onclick="checkAnswer(this)">
+                            <span class="option-letter">B</span>
+                            <span>Weltweit in allen Gebäuden des Versicherungsnehmers</span>
+                        </div>
+                        <div class="quiz-option" data-correct="false" onclick="checkAnswer(this)">
+                            <span class="option-letter">C</span>
+                            <span>Nur in Wohngebäuden, nicht in Geschäftsräumen</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="nav-buttons">
+                <button class="nav-btn" onclick="showMap()">&#128506; Zur Karte</button>
+                <button class="nav-btn primary" id="next-4" onclick="completeLevel(4)" disabled>Training abschließen &#127942;</button>
+            </div>
+        </div>
+
+        <!-- Completion Screen -->
+        <div id="completion-screen" class="screen">
+            <div class="trophy">&#127942;</div>
+            <h1 class="completion-title">Training abgeschlossen!</h1>
+            <p class="final-score">Du hast <span id="final-xp">0</span> XP gesammelt!</p>
+
+            <div class="badge-container">
+                <div class="badge">
+                    <div class="badge-icon">&#128737;</div>
+                    <div class="badge-name">Grundlagen-Meister</div>
+                </div>
+                <div class="badge">
+                    <div class="badge-icon">&#9888;</div>
+                    <div class="badge-name">Ausschluss-Experte</div>
+                </div>
+                <div class="badge">
+                    <div class="badge-icon">&#128221;</div>
+                    <div class="badge-name">Pflichten-Kenner</div>
+                </div>
+                <div class="badge">
+                    <div class="badge-icon">&#128220;</div>
+                    <div class="badge-name">Vertrags-Profi</div>
+                </div>
+            </div>
+
+            <div class="content-box" style="text-align: left; margin-top: 2rem;">
+                <h3 style="color: var(--gold); margin-bottom: 1rem;">&#128218; Zusammenfassung der wichtigsten Punkte:</h3>
+                <ul style="line-height: 2;">
+                    <li>Schutz nur bei <strong>gewaltsamen Einbruch</strong></li>
+                    <li>Wichtige <strong>Ausschlüsse</strong>: Vandalismus, einfacher Diebstahl, Raub, Terror, Naturkatastrophen</li>
+                    <li><strong>Obliegenheiten</strong> einhalten: Informationspflicht, Sicherheitsvorschriften, schnelle Schadensmeldung</li>
+                    <li><strong>Kündigungsfristen</strong>: Verbraucher 1 Monat (ab 3. Jahr), Unternehmer 3 Monate</li>
+                    <li><strong>Prämienzahlung</strong> ist Voraussetzung für Versicherungsschutz</li>
+                </ul>
+            </div>
+
+            <div class="nav-buttons" style="justify-content: center; margin-top: 2rem;">
+                <button class="nav-btn primary" onclick="restartGame()">&#128260; Nochmal spielen</button>
+            </div>
+        </div>
+    </main>
+
+    <!-- Character Helper -->
+    <div class="character" onclick="toggleSpeech()">&#128373;</div>
+    <div class="speech-bubble" id="speech-bubble">
+        Willkommen beim TIROLER Training! Klicke auf mich für Tipps!
+    </div>
+
+    <script>
+        // Game State
+        let gameState = {
+            currentLevel: 0,
+            xp: 0,
+            maxXp: 400,
+            completedLevels: [],
+            quizProgress: {},
+            levelQuizCounts: {
+                1: 2,
+                2: 3,
+                3: 3,
+                4: 4
+            }
+        };
+
+        const tips = [
+            "Einbruchdiebstahl bedeutet: Gewaltsames Eindringen in Räumlichkeiten!",
+            "Tipp: Einfacher Diebstahl ohne Einbruch ist NICHT versichert!",
+            "Merke: Polizei UND TIROLER müssen bei Schaden informiert werden!",
+            "Wichtig: Verbraucher können ab dem 3. Jahr jährlich kündigen!",
+            "Denk dran: Rechtzeitige Prämienzahlung = Versicherungsschutz!",
+            "Terror und Naturkatastrophen sind grundsätzlich ausgeschlossen!",
+            "Unterversicherung = nur anteilige Entschädigung!",
+            "Alle Sicherheitsvorschriften einhalten - sonst droht Leistungskürzung!"
+        ];
+
+        // Initialize particles
+        function createParticles() {
+            const container = document.getElementById('particles');
+            for (let i = 0; i < 30; i++) {
+                const particle = document.createElement('div');
+                particle.className = 'particle';
+                particle.style.left = Math.random() * 100 + '%';
+                particle.style.animationDelay = Math.random() * 15 + 's';
+                particle.style.animationDuration = (10 + Math.random() * 10) + 's';
+                container.appendChild(particle);
+            }
+        }
+
+        // Show screen
+        function showScreen(screenId) {
+            document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+            document.getElementById(screenId).classList.add('active');
+        }
+
+        // Start game
+        function startGame() {
+            showScreen('map-screen');
+            updateUI();
+        }
+
+        // Show map
+        function showMap() {
+            showScreen('map-screen');
+            updateLevelCards();
+        }
+
+        // Select level
+        function selectLevel(level) {
+            const card = document.querySelector(`.level-card[data-level="${level}"]`);
+            if (card.classList.contains('locked')) return;
+
+            gameState.currentLevel = level;
+            showScreen(`level-${level}`);
+
+            // Initialize quiz progress for this level
+            if (!gameState.quizProgress[level]) {
+                gameState.quizProgress[level] = 0;
+            }
+            updateProgress(level);
+        }
+
+        // Check answer
+        function checkAnswer(element) {
+            if (element.classList.contains('disabled')) return;
+
+            const options = element.parentElement.querySelectorAll('.quiz-option');
+            options.forEach(opt => opt.classList.add('disabled'));
+
+            const isCorrect = element.dataset.correct === 'true';
+
+            if (isCorrect) {
+                element.classList.add('correct');
+                addXP(25);
+                showSpeech("Richtig! Weiter so! +25 XP");
+            } else {
+                element.classList.add('wrong');
+                // Show correct answer
+                options.forEach(opt => {
+                    if (opt.dataset.correct === 'true') {
+                        opt.classList.add('correct');
+                    }
+                });
+                showSpeech("Nicht ganz richtig. Schau dir die richtige Antwort an!");
+            }
+
+            // Progress to next question
+            const level = gameState.currentLevel;
+            gameState.quizProgress[level]++;
+
+            setTimeout(() => {
+                const nextQuizId = `quiz-${level}-${gameState.quizProgress[level] + 1}`;
+                const nextQuiz = document.getElementById(nextQuizId);
+
+                if (nextQuiz) {
+                    nextQuiz.style.display = 'block';
+                    nextQuiz.scrollIntoView({ behavior: 'smooth' });
+                }
+
+                updateProgress(level);
+
+                // Enable complete button if all quizzes done
+                if (gameState.quizProgress[level] >= gameState.levelQuizCounts[level]) {
+                    document.getElementById(`next-${level}`).disabled = false;
+                }
+            }, 1500);
+        }
+
+        // Update progress
+        function updateProgress(level) {
+            const progress = gameState.quizProgress[level] || 0;
+            const total = gameState.levelQuizCounts[level];
+            const percent = Math.round((progress / total) * 100);
+
+            document.getElementById(`progress-${level}`).textContent = percent + '%';
+            document.getElementById(`progress-fill-${level}`).style.width = percent + '%';
+        }
+
+        // Complete level
+        function completeLevel(level) {
+            if (!gameState.completedLevels.includes(level)) {
+                gameState.completedLevels.push(level);
+                addXP(50); // Bonus XP for completing level
+            }
+
+            if (level === 4) {
+                // Final level - show completion
+                document.getElementById('final-xp').textContent = gameState.xp;
+                showScreen('completion-screen');
+            } else {
+                showMap();
+            }
+        }
+
+        // Update level cards
+        function updateLevelCards() {
+            document.querySelectorAll('.level-card').forEach(card => {
+                const level = parseInt(card.dataset.level);
+
+                // Remove locked for accessible levels
+                if (level === 1 || gameState.completedLevels.includes(level - 1)) {
+                    card.classList.remove('locked');
+                }
+
+                // Mark completed
+                if (gameState.completedLevels.includes(level)) {
+                    card.classList.add('completed');
+                }
+            });
+        }
+
+        // Add XP
+        function addXP(amount) {
+            gameState.xp += amount;
+            updateUI();
+        }
+
+        // Update UI
+        function updateUI() {
+            const xpPercent = Math.min((gameState.xp / gameState.maxXp) * 100, 100);
+            document.getElementById('xp-bar').style.width = xpPercent + '%';
+            document.getElementById('xp-text').textContent = gameState.xp + ' XP';
+
+            const level = Math.floor(gameState.xp / 100) + 1;
+            document.getElementById('level-text').textContent = 'Level ' + level;
+
+            updateLevelCards();
+        }
+
+        // Speech bubble
+        let speechTimeout;
+        function toggleSpeech() {
+            const bubble = document.getElementById('speech-bubble');
+            bubble.textContent = tips[Math.floor(Math.random() * tips.length)];
+            bubble.classList.add('show');
+
+            clearTimeout(speechTimeout);
+            speechTimeout = setTimeout(() => {
+                bubble.classList.remove('show');
+            }, 4000);
+        }
+
+        function showSpeech(text) {
+            const bubble = document.getElementById('speech-bubble');
+            bubble.textContent = text;
+            bubble.classList.add('show');
+
+            clearTimeout(speechTimeout);
+            speechTimeout = setTimeout(() => {
+                bubble.classList.remove('show');
+            }, 3000);
+        }
+
+        // Restart game
+        function restartGame() {
+            gameState = {
+                currentLevel: 0,
+                xp: 0,
+                maxXp: 400,
+                completedLevels: [],
+                quizProgress: {},
+                levelQuizCounts: { 1: 2, 2: 3, 3: 3, 4: 4 }
+            };
+
+            // Reset all quiz states
+            document.querySelectorAll('.quiz-question').forEach((q, i) => {
+                const num = q.dataset.quiz.split('-')[1];
+                if (num !== '1') {
+                    q.style.display = 'none';
+                }
+            });
+
+            document.querySelectorAll('.quiz-option').forEach(opt => {
+                opt.classList.remove('correct', 'wrong', 'disabled');
+            });
+
+            document.querySelectorAll('[id^="next-"]').forEach(btn => {
+                btn.disabled = true;
+            });
+
+            document.querySelectorAll('.level-card').forEach(card => {
+                card.classList.remove('completed');
+                if (card.dataset.level !== '1') {
+                    card.classList.add('locked');
+                }
+            });
+
+            updateUI();
+            showScreen('start-screen');
+        }
+
+        // Initialize
+        createParticles();
+
+        // Show initial speech after delay
+        setTimeout(() => {
+            toggleSpeech();
+        }, 2000);
+    </script>
+</body>
+</html>
